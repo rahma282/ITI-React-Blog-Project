@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Link , useNavigate} from "react-router";
-
+import { Link, useNavigate } from "react-router"; 
 const initialErrors = { email: null, password: null };
 
 export default function Login() {
@@ -12,32 +11,50 @@ export default function Login() {
 
   const [errors, setErrors] = useState(initialErrors);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors(initialErrors);
 
     let formErrors = { ...initialErrors };
 
-    if (!form.email) {  
+    if (!form.email) {
       formErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       formErrors.email = "Email is invalid";
     }
-    // else if("emil not match"){//we need check that email is right in db 
-    //   formErrors.email = "Password or email is not correct";
-    // }
 
     if (!form.password) {
       formErrors.password = "Password is required";
-    } else if (form.password.length < 8) {  //not match password in db 
+    } else if (form.password.length < 8) {
       formErrors.password = "Password or email is not correct";
     }
 
     setErrors(formErrors);
 
     if (!formErrors.email && !formErrors.password) {
-      console.log("Form submitted", form);
-      navigate("/");
+      try {
+        const response = await fetch("http://localhost:3000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Password or email is not correct");
+        }
+
+        const data = await response.json();
+        console.log("Login successful, token:", data.accessToken);
+
+        localStorage.setItem("token", data.accessToken);
+
+        navigate("/");
+      } catch (error) {
+        setErrors({ ...initialErrors, password: error.message });
+      }
     }
   };
 
@@ -70,10 +87,7 @@ export default function Login() {
         </div>
 
         <div className="flex flex-col gap-3 mb-6">
-          <label
-            htmlFor="password"
-            className="text-lg font-medium text-[#374e6a]"
-          >
+          <label htmlFor="password" className="text-lg font-medium text-[#374e6a]">
             Password
           </label>
           <input

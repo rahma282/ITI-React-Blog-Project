@@ -1,21 +1,20 @@
 import React, { useState } from "react";
-import { Link ,  useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
-
-const initialErrors = { email: null, password: null,name:null,confirmPassword:null };
+const initialErrors = { email: null, password: null, name: null, confirmPassword: null };
 
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name:"",
+    name: "",
     email: "",
     password: "",
-    confirmPassword:"",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState(initialErrors);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors(initialErrors);
 
@@ -23,8 +22,8 @@ export default function Register() {
 
     if (!form.name) {
       formErrors.name = "Name is required";
-    } else if (form.name.length < 3 | form.name.length > 50) {
-      formErrors.name = "Name must be at least 3 characters and don't exeed 50 characters";
+    } else if (form.name.length < 3 || form.name.length > 50) {
+      formErrors.name = "Name must be at least 3 characters and don't exceed 50 characters";
     }
 
     if (!form.email) {
@@ -32,7 +31,6 @@ export default function Register() {
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       formErrors.email = "Email is invalid";
     }
-    //we need check that email is unique after i add 
 
     if (!form.password) {
       formErrors.password = "Password is required";
@@ -43,14 +41,56 @@ export default function Register() {
     if (!form.confirmPassword) {
       formErrors.confirmPassword = "Confirm Password is required";
     } else if (form.confirmPassword !== form.password) {
-      formErrors.confirmPassword = "Confirm Password must be match password";
+      formErrors.confirmPassword = "Confirm Password must match password";
+    }
+
+    if (!formErrors.email) {
+      try {
+        const response = await fetch("http://localhost:3000/users?email=" + form.email);
+        const users = await response.json();
+        if (users.length > 0) {
+          formErrors.email = "Email is already registered";
+        }
+      } catch (error) {
+        formErrors.email = "Error checking email";
+      }
     }
 
     setErrors(formErrors);
 
-    if (!formErrors.email && !formErrors.password&& !formErrors.name && !formErrors.confirmPassword) {
-      console.log("Form submitted", form);
-      navigate("/login");
+    if (!formErrors.email && !formErrors.password && !formErrors.name && !formErrors.confirmPassword) {
+      try {
+        const response = await fetch("http://localhost:3000/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Registration failed");
+        }
+
+        const data = await response.json();
+        console.log("Registration successful, token:", data.accessToken);
+
+        const userResponse = await fetch("http://localhost:3000/users?email=" + form.email);
+        const [user] = await userResponse.json();
+        if (user) {
+          await fetch(`http://localhost:3000/users/${user.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: form.name }),
+          });
+        }
+
+        navigate("/login");
+      } catch (error) {
+        setErrors({ ...initialErrors, email: error.message });
+      }
     }
   };
 
@@ -64,8 +104,7 @@ export default function Register() {
         Register
       </h2>
       <form onSubmit={handleSubmit}>
-
-      <div className="flex flex-col gap-3 mb-4">
+        <div className="flex flex-col gap-3 mb-4">
           <label htmlFor="name" className="text-lg font-medium text-[#374e6a]">
             Name
           </label>
@@ -102,10 +141,7 @@ export default function Register() {
         </div>
 
         <div className="flex flex-col gap-3 mb-6">
-          <label
-            htmlFor="password"
-            className="text-lg font-medium text-[#374e6a]"
-          >
+          <label htmlFor="password" className="text-lg font-medium text-[#374e6a]">
             Password
           </label>
           <input
@@ -122,10 +158,7 @@ export default function Register() {
           )}
         </div>
         <div className="flex flex-col gap-3 mb-6">
-          <label
-            htmlFor="password"
-            className="text-lg font-medium text-[#374e6a]"
-          >
+          <label htmlFor="confirmPassword" className="text-lg font-medium text-[#374e6a]">
             Confirm password
           </label>
           <input
