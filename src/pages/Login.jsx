@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link , useNavigate} from "react-router";
 
 const initialErrors = { email: null, password: null };
 
 export default function Login() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -36,6 +37,7 @@ export default function Login() {
 
     if (!formErrors.email && !formErrors.password) {
       console.log("Form submitted", form);
+      navigate("/");
     }
   };
 
@@ -45,7 +47,7 @@ export default function Login() {
 
   return (
     <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
-      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]">
+      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]" style={{ fontFamily: "'Pacifico', cursive" }}>
         Login
       </h2>
       <form onSubmit={handleSubmit}>
@@ -91,8 +93,9 @@ export default function Login() {
         <button
           type="submit"
           className="w-full py-2 bg-[#374e6a] text-white rounded-md hover:bg-[#2a3d55]"
+          style={{ fontFamily: "'Pacifico', cursive" }}
         >
-          Submit
+          Login
         </button>
       </form>
 

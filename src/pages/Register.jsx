@@ -4,7 +4,7 @@ import { Link ,  useNavigate } from "react-router";
 
 const initialErrors = { email: null, password: null,name:null,confirmPassword:null };
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name:"",
@@ -60,7 +60,7 @@ export default function Login() {
 
   return (
     <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
-      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]">
+      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]" style={{ fontFamily: "'Pacifico', cursive" }}>
         Register
       </h2>
       <form onSubmit={handleSubmit}>
@@ -145,8 +145,9 @@ export default function Login() {
         <button
           type="submit"
           className="w-full py-2 bg-[#374e6a] text-white rounded-md hover:bg-[#2a3d55]"
+          style={{ fontFamily: "'Pacifico', cursive" }}
         >
-          Submit
+          Signup
         </button>
       </form>
 

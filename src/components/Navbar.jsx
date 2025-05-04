@@ -41,7 +41,7 @@ export default function Navbar() {
                 className="btn btn-ghost text-xl"
                 style={{ fontFamily: "'Pacifico', cursive" }}
               >
-                Add Post
+                Create Post
               </NavLink>
             </li>
             <li>
@@ -90,7 +90,7 @@ export default function Navbar() {
               className="btn btn-ghost text-xl"
               style={{ fontFamily: "'Quicksand'" }}
             >
-              Add Post
+              Create Post
             </NavLink>
           </li>
           <li>

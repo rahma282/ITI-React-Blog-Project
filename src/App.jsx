@@ -8,7 +8,7 @@ import Register from './pages/Register';
 import AddPost from './pages/AddPost';
 import EditPost from './pages/EditPost';
 import NotFound from './pages/NotFound';
-import { ToastContainer } from "react-toastify";
+import Contact from "./pages/Contact";
 
 function App() {
   
@@ -23,6 +23,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/add" element={<AddPost />} />
             <Route path="/edit/:id" element={<EditPost />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
