@@ -1,7 +1,15 @@
 import React from "react";
-import { NavLink } from "react-router";
+import { NavLink , useNavigate } from "react-router";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   return (
     <div className="navbar bg-base-100 shadow-sm">
       <div className="navbar-start">
@@ -44,24 +52,38 @@ export default function Navbar() {
                 Create Post
               </NavLink>
             </li>
-            <li>
-              <NavLink
-                to="/login"
-                className="btn btn-ghost text-xl"
-                style={{ fontFamily: "'Pacifico', cursive" }}
-              >
-                Login
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/register"
-                className="btn btn-ghost text-xl"
-                style={{ fontFamily: "'Pacifico', cursive" }}
-              >
-                Register
-              </NavLink>
-            </li>
+            {!isLoggedIn ? (
+              <>
+                <li>
+                  <NavLink
+                    to="/login"
+                    className="btn btn-ghost text-xl"
+                    style={{ fontFamily: "'Pacifico', cursive" }}
+                  >
+                    Login
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/register"
+                    className="btn btn-ghost text-xl"
+                    style={{ fontFamily: "'Pacifico', cursive" }}
+                  >
+                    Register
+                  </NavLink>
+                </li>
+              </>
+            ) : (
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-ghost text-xl"
+                  style={{ fontFamily: "'Pacifico', cursive" }}
+                >
+                  Logout
+                </button>
+              </li>
+            )}
           </ul>
         </div>
         <NavLink
@@ -106,13 +128,23 @@ export default function Navbar() {
       </div>
 
       <div className="navbar-end hidden lg:flex ml-0.5">
-        <NavLink
-          to="/login"
-          className="btn btn-ghost text-xl"
-          style={{ fontFamily: "'Pacifico'" }}
-        >
-          SignIn
-        </NavLink>
+        {!isLoggedIn ? (
+          <NavLink
+            to="/login"
+            className="btn btn-ghost text-xl"
+            style={{ fontFamily: "'Pacifico'" }}
+          >
+            SignIn
+          </NavLink>
+        ) : (
+          <button
+            onClick={handleLogout}
+            className="btn btn-ghost text-xl"
+            style={{ fontFamily: "'Pacifico'" }}
+          >
+            Logout
+          </button>
+        )}
       </div>
     </div>
   );
