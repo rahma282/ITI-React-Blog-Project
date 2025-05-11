@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import axios from "axios";
 
 const initialErrors = { title: null, body: null, image: null };
 
@@ -13,7 +14,7 @@ export default function AddPost() {
 
   const [errors, setErrors] = useState(initialErrors);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors(initialErrors);
 
@@ -42,8 +43,20 @@ export default function AddPost() {
     setErrors(formErrors);
 
     if (!formErrors.title && !formErrors.body && !formErrors.image) {
-      console.log("Form submitted", form);
-      navigate("/");
+      try {
+        const token = localStorage.getItem("token");
+
+        await axios.post("http://localhost:3000/posts", form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        console.log("Post submitted successfully");
+        navigate("/");
+      } catch (error) {
+        console.error("Error submitting post:", error);
+      }
     }
   };
 
