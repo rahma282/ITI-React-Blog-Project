@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router"; 
 
 const initialErrors = { email: null, password: null, name: null, confirmPassword: null };
 
@@ -23,7 +23,7 @@ export default function Register() {
     if (!form.name) {
       formErrors.name = "Name is required";
     } else if (form.name.length < 3 || form.name.length > 50) {
-      formErrors.name = "Name must be at least 3 characters and don't exceed 50 characters";
+      formErrors.name = "Name must be at least 3 characters and not exceed 50 characters";
     }
 
     if (!form.email) {
@@ -44,11 +44,14 @@ export default function Register() {
       formErrors.confirmPassword = "Confirm Password must match password";
     }
 
+    // Email existence check via backend API
     if (!formErrors.email) {
       try {
-        const response = await fetch("http://localhost:3000/users?email=" + form.email);
-        const users = await response.json();
-        if (users.length > 0) {
+        const response = await fetch(
+          `http://localhost:8000/api/check-email/?email=${encodeURIComponent(form.email)}`
+        );
+        const data = await response.json();
+        if (data.exists) {
           formErrors.email = "Email is already registered";
         }
       } catch (error) {
@@ -60,32 +63,23 @@ export default function Register() {
 
     if (!formErrors.email && !formErrors.password && !formErrors.name && !formErrors.confirmPassword) {
       try {
-        const response = await fetch("http://localhost:3000/register", {
+        const response = await fetch("http://localhost:8000/api/register/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: form.email,
             password: form.password,
+            name: form.name,
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || "Registration failed");
+          throw new Error(errorData.email || "Registration failed");
         }
 
         const data = await response.json();
-        console.log("Registration successful, token:", data.accessToken);
-
-        const userResponse = await fetch("http://localhost:3000/users?email=" + form.email);
-        const [user] = await userResponse.json();
-        if (user) {
-          await fetch(`http://localhost:3000/users/${user.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: form.name }),
-          });
-        }
+        console.log("Registration successful, token:", data.access);
 
         navigate("/login");
       } catch (error) {
@@ -100,7 +94,10 @@ export default function Register() {
 
   return (
     <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
-      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]" style={{ fontFamily: "'Pacifico', cursive" }}>
+      <h2
+        className="text-2xl font-semibold text-center mb-6 text-[#374e6a]"
+        style={{ fontFamily: "'Pacifico', cursive" }}
+      >
         Register
       </h2>
       <form onSubmit={handleSubmit}>
@@ -117,9 +114,7 @@ export default function Register() {
             className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
             placeholder="Enter your name"
           />
-          {errors.name && (
-            <span className="text-xs text-red-500 font-bold">{errors.name}</span>
-          )}
+          {errors.name && <span className="text-xs text-red-500 font-bold">{errors.name}</span>}
         </div>
 
         <div className="flex flex-col gap-3 mb-4">
@@ -131,13 +126,11 @@ export default function Register() {
             onChange={handleChange}
             id="email"
             name="email"
-            type="text"
+            type="email"
             className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
             placeholder="Enter your email"
           />
-          {errors.email && (
-            <span className="text-xs text-red-500 font-bold">{errors.email}</span>
-          )}
+          {errors.email && <span className="text-xs text-red-500 font-bold">{errors.email}</span>}
         </div>
 
         <div className="flex flex-col gap-3 mb-6">
@@ -153,10 +146,9 @@ export default function Register() {
             className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
             placeholder="Enter your password"
           />
-          {errors.password && (
-            <span className="text-xs text-red-500 font-bold">{errors.password}</span>
-          )}
+          {errors.password && <span className="text-xs text-red-500 font-bold">{errors.password}</span>}
         </div>
+
         <div className="flex flex-col gap-3 mb-6">
           <label htmlFor="confirmPassword" className="text-lg font-medium text-[#374e6a]">
             Confirm password

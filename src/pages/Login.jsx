@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router"; 
+import { Link, useNavigate } from "react-router";
+
 const initialErrors = { email: null, password: null };
 
 export default function Login() {
@@ -10,6 +11,7 @@ export default function Login() {
   });
 
   const [errors, setErrors] = useState(initialErrors);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,6 +19,7 @@ export default function Login() {
 
     let formErrors = { ...initialErrors };
 
+    // Validation
     if (!form.email) {
       formErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
@@ -26,14 +29,15 @@ export default function Login() {
     if (!form.password) {
       formErrors.password = "Password is required";
     } else if (form.password.length < 8) {
-      formErrors.password = "Password or email is not correct";
+      formErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(formErrors);
 
     if (!formErrors.email && !formErrors.password) {
+      setLoading(true);
       try {
-        const response = await fetch("http://localhost:3000/login", {
+        const response = await fetch("http://localhost:8000/api/login/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -43,17 +47,21 @@ export default function Login() {
         });
 
         if (!response.ok) {
-          throw new Error("Password or email is not correct");
+          const errorData = await response.json().catch(() => null);
+          const message = errorData?.message || "Password or email is not correct";
+          throw new Error(message);
         }
 
         const data = await response.json();
-        console.log("Login successful, token:", data.accessToken);
+        console.log("Login successful, token:", data.access);
 
-        localStorage.setItem("token", data.accessToken);
+        localStorage.setItem("token", data.access);
 
         navigate("/");
       } catch (error) {
         setErrors({ ...initialErrors, password: error.message });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -64,12 +72,18 @@ export default function Login() {
 
   return (
     <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
-      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]" style={{ fontFamily: "'Pacifico', cursive" }}>
+      <h2
+        className="text-2xl font-semibold text-center mb-6 text-[#374e6a]"
+        style={{ fontFamily: "'Pacifico', cursive" }}
+      >
         Login
       </h2>
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-3 mb-4">
-          <label htmlFor="email" className="text-lg font-medium text-[#374e6a]">
+          <label
+            htmlFor="email"
+            className="text-lg font-medium text-[#374e6a]"
+          >
             Email
           </label>
           <input
@@ -77,7 +91,7 @@ export default function Login() {
             onChange={handleChange}
             id="email"
             name="email"
-            type="text"
+            type="email"
             className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
             placeholder="Enter your email"
           />
@@ -87,7 +101,10 @@ export default function Login() {
         </div>
 
         <div className="flex flex-col gap-3 mb-6">
-          <label htmlFor="password" className="text-lg font-medium text-[#374e6a]">
+          <label
+            htmlFor="password"
+            className="text-lg font-medium text-[#374e6a]"
+          >
             Password
           </label>
           <input
@@ -106,10 +123,13 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full py-2 bg-[#374e6a] text-white rounded-md hover:bg-[#2a3d55]"
+          disabled={loading}
+          className={`w-full py-2 text-white rounded-md ${
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#374e6a] hover:bg-[#2a3d55]"
+          }`}
           style={{ fontFamily: "'Pacifico', cursive" }}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
 
