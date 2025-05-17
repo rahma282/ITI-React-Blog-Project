@@ -35,10 +35,40 @@ export default function Home() {
   }, []);
 
   const handleDelete = (postId) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
-
+    const ConfirmToast = () => (
+      <div>
+        <p>Are you sure you want to delete this post?</p>
+        <div className="flex gap-4 mt-3">
+          <button
+            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+            onClick={() => {
+              performDelete(postId);
+              toast.dismiss();
+            }}
+          >
+            Yes
+          </button>
+          <button
+            className="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400"
+            onClick={() => toast.dismiss()}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  
+    toast(<ConfirmToast />, {
+      position: "top-center",
+      autoClose: false,
+      closeOnClick: false,
+      closeButton: false,
+    });
+  };
+  
+  const performDelete = (postId) => {
     const token = localStorage.getItem("token");
-
+  
     fetch(`http://localhost:8000/api/posts/${postId}/`, {
       method: "DELETE",
       headers: {
@@ -47,21 +77,14 @@ export default function Home() {
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to delete post");
-        // Remove deleted post from state
-        setPosts(posts.filter((post) => post.id !== postId));
+        setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
         toast.success("Post deleted successfully!");
       })
       .catch((err) => {
         toast.error("Delete failed: " + err.message);
       });
   };
-
-  if (loading)
-    return (
-      <div className="text-center mt-10 text-gray-600">Loading posts...</div>
-    );
-  if (error)
-    return <div className="text-center mt-10 text-red-500">Error: {error}</div>;
+  
 
   return (
     <>
