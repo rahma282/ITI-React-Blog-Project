@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const initialErrors = { title: null, content: null, image_url: null };
 
@@ -8,11 +10,21 @@ export default function AddPost() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     title: "",
-    content: "",    
-    image_url: "",  
+    content: "",
+    image_url: "",
   });
 
   const [errors, setErrors] = useState(initialErrors);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("You must be logged in to add a post");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,13 +51,17 @@ export default function AddPost() {
     ) {
       formErrors.image_url = "Image URL must be a valid image link (jpg, png, etc)";
     }
+
     setErrors(formErrors);
 
     if (!formErrors.title && !formErrors.content && !formErrors.image_url) {
       try {
         const token = localStorage.getItem("token");
-        console.log("Token from localStorage:", token); // Log the token
-        
+        if (!token) {
+          toast.error("Please login first");
+          return navigate("/login");
+        }
+
         const config = {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -53,43 +69,22 @@ export default function AddPost() {
           },
         };
 
-        console.log("Request configuration:", {
-          url: "http://localhost:8000/api/posts/",
-          method: "POST",
-          data: form,
-          headers: config.headers,
-        });
-
         const response = await axios.post(
-          "http://localhost:8000/api/posts/", 
-          form, 
+          "http://localhost:8000/api/posts/",
+          form,
           config
         );
 
-        console.log("Response received:", {
-          status: response.status,
-          data: response.data,
-          headers: response.headers,
-        });
+        toast.success("Post created successfully!");
+        setTimeout(() => {
+          navigate("/");
+        }, 1500); // wait to show success toast
 
-        console.log("Post submitted successfully");
-        navigate("/");
       } catch (error) {
-        console.error("Full error object:", error);
-        
         if (error.response) {
-          // The request was made and the server responded with a status code
-          console.error("Response error details:", {
-            status: error.response.status,
-            headers: error.response.headers,
-            data: error.response.data,
-          });
-        } else if (error.request) {
-          // The request was made but no response was received
-          console.error("No response received:", error.request);
+          toast.error(`Error: ${error.response.data?.message || "Failed to create post"}`);
         } else {
-          // Something happened in setting up the request
-          console.error("Request setup error:", error.message);
+          toast.error("Failed to submit post");
         }
       }
     }
@@ -100,81 +95,85 @@ export default function AddPost() {
   };
 
   return (
-    <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
-      <h2
-        className="text-2xl font-semibold text-center mb-6 text-[#374e6a]"
-        style={{ fontFamily: "'Pacifico', cursive" }}
-      >
-        Add Post
-      </h2>
-      <form onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-3 mb-4">
-          <label htmlFor="title" className="text-lg font-medium text-[#374e6a]">
-            Title
-          </label>
-          <input
-            value={form.title}
-            onChange={handleChange}
-            id="title"
-            name="title"
-            type="text"
-            className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
-            placeholder="Enter post title"
-          />
-          {errors.title && (
-            <span className="text-xs text-red-500 font-bold">
-              {errors.title}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-3 mb-6">
-          <label htmlFor="content" className="text-lg font-medium text-[#374e6a]">
-            Content
-          </label>
-          <textarea
-            value={form.content}
-            onChange={handleChange}
-            id="content"
-            name="content"
-            className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
-            placeholder="Enter post content"
-          />
-          {errors.content && (
-            <span className="text-xs text-red-500 font-bold">
-              {errors.content}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-3 mb-6">
-          <label htmlFor="image_url" className="text-lg font-medium text-[#374e6a]">
-            Image URL
-          </label>
-          <input
-            value={form.image_url}
-            onChange={handleChange}
-            id="image_url"
-            name="image_url"
-            type="text"
-            className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
-            placeholder="Paste image URL"
-          />
-          {errors.image_url && (
-            <span className="text-xs text-red-500 font-bold">
-              {errors.image_url}
-            </span>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          className="w-full py-2 bg-[#374e6a] text-white rounded-md hover:bg-[#2a3d55]"
+    <>
+      <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
+        <h2
+          className="text-2xl font-semibold text-center mb-6 text-[#374e6a]"
           style={{ fontFamily: "'Pacifico', cursive" }}
         >
-          Create Post
-        </button>
-      </form>
-    </div>
+          Add Post
+        </h2>
+        <form onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-3 mb-4">
+            <label htmlFor="title" className="text-lg font-medium text-[#374e6a]">
+              Title
+            </label>
+            <input
+              value={form.title}
+              onChange={handleChange}
+              id="title"
+              name="title"
+              type="text"
+              className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
+              placeholder="Enter post title"
+            />
+            {errors.title && (
+              <span className="text-xs text-red-500 font-bold">
+                {errors.title}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 mb-6">
+            <label htmlFor="content" className="text-lg font-medium text-[#374e6a]">
+              Content
+            </label>
+            <textarea
+              value={form.content}
+              onChange={handleChange}
+              id="content"
+              name="content"
+              className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
+              placeholder="Enter post content"
+            />
+            {errors.content && (
+              <span className="text-xs text-red-500 font-bold">
+                {errors.content}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 mb-6">
+            <label htmlFor="image_url" className="text-lg font-medium text-[#374e6a]">
+              Image URL
+            </label>
+            <input
+              value={form.image_url}
+              onChange={handleChange}
+              id="image_url"
+              name="image_url"
+              type="text"
+              className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
+              placeholder="Paste image URL"
+            />
+            {errors.image_url && (
+              <span className="text-xs text-red-500 font-bold">
+                {errors.image_url}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-2 bg-[#374e6a] text-white rounded-md hover:bg-[#2a3d55]"
+            style={{ fontFamily: "'Pacifico', cursive" }}
+          >
+            Create Post
+          </button>
+        </form>
+      </div>
+
+      <ToastContainer position="top-right" autoClose={2500} />
+    </>
   );
 }

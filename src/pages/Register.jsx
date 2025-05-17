@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router"; 
+import { Link, useNavigate } from "react-router";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const initialErrors = { email: null, password: null, name: null, confirmPassword: null };
 
@@ -53,9 +55,11 @@ export default function Register() {
         const data = await response.json();
         if (data.exists) {
           formErrors.email = "Email is already registered";
+          toast.error("Email is already registered");
         }
       } catch (error) {
         formErrors.email = "Error checking email";
+        toast.error("Error checking email");
       }
     }
 
@@ -75,15 +79,19 @@ export default function Register() {
 
         if (!response.ok) {
           const errorData = await response.json();
+          toast.error(errorData.email || "Registration failed");
           throw new Error(errorData.email || "Registration failed");
         }
 
         const data = await response.json();
         console.log("Registration successful, token:", data.access);
-
-        navigate("/login");
+        toast.success("Registration successful!");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } catch (error) {
         setErrors({ ...initialErrors, email: error.message });
+        toast.error(error.message);
       }
     }
   };
@@ -184,6 +192,9 @@ export default function Register() {
           </Link>
         </p>
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
     </div>
   );
 }

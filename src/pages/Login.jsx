@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const initialErrors = { email: null, password: null };
 
@@ -19,7 +21,6 @@ export default function Login() {
 
     let formErrors = { ...initialErrors };
 
-    // Validation
     if (!form.email) {
       formErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
@@ -49,17 +50,22 @@ export default function Login() {
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
           const message = errorData?.message || "Password or email is not correct";
+          toast.error(message);
           throw new Error(message);
         }
 
         const data = await response.json();
         console.log("Login successful, token:", data.access);
-
         localStorage.setItem("token", data.access);
 
-        navigate("/");
+        toast.success("Logged in successfully!");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
       } catch (error) {
         setErrors({ ...initialErrors, password: error.message });
+        toast.error(error.message || "Login failed!");
       } finally {
         setLoading(false);
       }
@@ -72,20 +78,19 @@ export default function Login() {
 
   return (
     <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
+      <ToastContainer position="top-right" autoClose={3000} />
+      
       <h2
         className="text-2xl font-semibold text-center mb-6 text-[#374e6a]"
         style={{ fontFamily: "'Pacifico', cursive" }}
       >
         Login
       </h2>
+
       <form onSubmit={handleSubmit}>
+        {/* Email Field */}
         <div className="flex flex-col gap-3 mb-4">
-          <label
-            htmlFor="email"
-            className="text-lg font-medium text-[#374e6a]"
-          >
-            Email
-          </label>
+          <label htmlFor="email" className="text-lg font-medium text-[#374e6a]">Email</label>
           <input
             value={form.email}
             onChange={handleChange}
@@ -100,13 +105,9 @@ export default function Login() {
           )}
         </div>
 
+        {/* Password Field */}
         <div className="flex flex-col gap-3 mb-6">
-          <label
-            htmlFor="password"
-            className="text-lg font-medium text-[#374e6a]"
-          >
-            Password
-          </label>
+          <label htmlFor="password" className="text-lg font-medium text-[#374e6a]">Password</label>
           <input
             value={form.password}
             onChange={handleChange}
@@ -121,6 +122,7 @@ export default function Login() {
           )}
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
@@ -133,6 +135,7 @@ export default function Login() {
         </button>
       </form>
 
+      {/* Register Link */}
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-600">
           Don't have an account?{" "}
