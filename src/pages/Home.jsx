@@ -11,7 +11,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("token");
 
     fetch("http://localhost:8000/api/posts/", {
       headers: {
@@ -37,7 +37,7 @@ export default function Home() {
   const handleDelete = (postId) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
 
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("token");
 
     fetch(`http://localhost:8000/api/posts/${postId}/`, {
       method: "DELETE",

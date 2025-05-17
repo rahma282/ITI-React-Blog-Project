@@ -18,7 +18,8 @@ export default function EditPost() {
   const [errors, setErrors] = useState(initialErrors);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("token");
+    console.log("Fetching post with ID:", id);
 
     fetch(`http://localhost:8000/api/posts/${id}/`, {
       headers: {
@@ -33,6 +34,7 @@ export default function EditPost() {
         return res.json();
       })
       .then((data) => {
+        console.log("Fetched post data:", data);
         setForm({
           title: data.title,
           content: data.content,
@@ -70,10 +72,13 @@ export default function EditPost() {
         "Image URL must be a valid image link (jpg, png, etc)";
     }
 
+    console.log("Validation errors:", formErrors);
     setErrors(formErrors);
 
     if (!formErrors.title && !formErrors.content && !formErrors.image_url) {
-      const token = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("token");
+      console.log("Token from localStorage:", token);
+      console.log("Sending PUT request with data:", form);
 
       fetch(`http://localhost:8000/api/posts/${id}/`, {
         method: "PUT",
@@ -81,13 +86,18 @@ export default function EditPost() {
           "Content-Type": "application/json",
           Authorization: token ? `Bearer ${token}` : "",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          title: form.title,
+          content: form.content,
+          image_url: form.image_url,
+        }),
       })
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to update post");
-          return res.json();
+        .then((response) => {
+          if (!response.ok) throw new Error("Failed to update post");
+          return response.json();
         })
         .then((data) => {
+          console.log("Post updated successfully", data);
           toast.success("Post updated successfully!");
           setTimeout(() => {
             navigate("/");
@@ -101,7 +111,11 @@ export default function EditPost() {
   };
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const updatedForm = { ...form, [name]: value };
+    console.log(`Input changed: ${name} = ${value}`);
+    console.log("Updated form state:", updatedForm);
+    setForm(updatedForm);
   };
 
   return (
