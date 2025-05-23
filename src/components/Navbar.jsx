@@ -3,10 +3,10 @@ import { NavLink , useNavigate } from "react-router";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("token");
+  const isLoggedIn = !!localStorage.getItem("access_token");
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
     navigate("/");
   };
 

@@ -17,7 +17,7 @@ export default function AddPost() {
   const [errors, setErrors] = useState(initialErrors);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) {
       toast.error("You must be logged in to add a post");
       setTimeout(() => {
@@ -56,7 +56,7 @@ export default function AddPost() {
 
     if (!formErrors.title && !formErrors.content && !formErrors.image_url) {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
         if (!token) {
           toast.error("Please login first");
           return navigate("/login");

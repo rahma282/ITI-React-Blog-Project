@@ -11,7 +11,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
 
     fetch("http://localhost:8000/api/posts/", {
       headers: {
@@ -67,7 +67,7 @@ export default function Home() {
   };
   
   const performDelete = (postId) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
   
     fetch(`http://localhost:8000/api/posts/${postId}/`, {
       method: "DELETE",
@@ -132,6 +132,8 @@ export default function Home() {
                 )}
 
                 <p className="text-gray-700 mb-6">{post.content}</p>
+                <p className="text-sm text-gray-500 italic">Created by: {post.user}</p>
+
 
                 <div className="flex justify-end gap-4">
                   <button

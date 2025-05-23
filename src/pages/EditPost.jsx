@@ -18,7 +18,7 @@ export default function EditPost() {
   const [errors, setErrors] = useState(initialErrors);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     console.log("Fetching post with ID:", id);
 
     fetch(`http://localhost:8000/api/posts/${id}/`, {
@@ -76,7 +76,7 @@ export default function EditPost() {
     setErrors(formErrors);
 
     if (!formErrors.title && !formErrors.content && !formErrors.image_url) {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       console.log("Token from localStorage:", token);
       console.log("Sending PUT request with data:", form);
 

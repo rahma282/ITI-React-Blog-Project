@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router"; // useNavigate from 'react-router-dom'
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const initialErrors = { email: null, password: null };
+const initialErrors = { username: null, password: null };
 
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -21,10 +21,8 @@ export default function Login() {
 
     let formErrors = { ...initialErrors };
 
-    if (!form.email) {
-      formErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      formErrors.email = "Email is invalid";
+    if (!form.username) {
+      formErrors.username = "Username is required";
     }
 
     if (!form.password) {
@@ -35,28 +33,29 @@ export default function Login() {
 
     setErrors(formErrors);
 
-    if (!formErrors.email && !formErrors.password) {
+    if (!formErrors.username && !formErrors.password) {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:8000/api/login/", {
+        const response = await fetch("http://localhost:8000/api/token/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: form.email,
+            username: form.username,
             password: form.password,
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
-          const message = errorData?.message || "Password or email is not correct";
+          const message = errorData?.detail || "Username or password is incorrect";
           toast.error(message);
           throw new Error(message);
         }
 
         const data = await response.json();
         console.log("Login successful, token:", data.access);
-        localStorage.setItem("token", data.access);
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
 
         toast.success("Logged in successfully!");
 
@@ -79,30 +78,25 @@ export default function Login() {
   return (
     <div className="w-[500px] m-auto mt-4 bg-white p-8 shadow-xl rounded-lg border border-gray-300 mb-1">
       <ToastContainer position="top-right" autoClose={3000} />
-      
-      <h2
-        className="text-2xl font-semibold text-center mb-6 text-[#374e6a]"
-        style={{ fontFamily: "'Pacifico', cursive" }}
-      >
+
+      <h2 className="text-2xl font-semibold text-center mb-6 text-[#374e6a]" style={{ fontFamily: "'Pacifico', cursive" }}>
         Login
       </h2>
 
       <form onSubmit={handleSubmit}>
-        {/* Email Field */}
+        {/* Username Field */}
         <div className="flex flex-col gap-3 mb-4">
-          <label htmlFor="email" className="text-lg font-medium text-[#374e6a]">Email</label>
+          <label htmlFor="username" className="text-lg font-medium text-[#374e6a]">Username</label>
           <input
-            value={form.email}
+            value={form.username}
             onChange={handleChange}
-            id="email"
-            name="email"
-            type="email"
+            id="username"
+            name="username"
+            type="text"
             className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
-            placeholder="Enter your email"
+            placeholder="Enter your username"
           />
-          {errors.email && (
-            <span className="text-xs text-red-500 font-bold">{errors.email}</span>
-          )}
+          {errors.username && <span className="text-xs text-red-500 font-bold">{errors.username}</span>}
         </div>
 
         {/* Password Field */}
@@ -117,9 +111,7 @@ export default function Login() {
             className="p-2 border border-[#374e6a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#374e6a]"
             placeholder="Enter your password"
           />
-          {errors.password && (
-            <span className="text-xs text-red-500 font-bold">{errors.password}</span>
-          )}
+          {errors.password && <span className="text-xs text-red-500 font-bold">{errors.password}</span>}
         </div>
 
         {/* Submit Button */}
